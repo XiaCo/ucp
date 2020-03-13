@@ -1,3 +1,5 @@
+[README](https://github.com/XiaCo/ucp/blob/master/README.md) | [中文文档](https://github.com/XiaCo/ucp/blob/master/README.zh.md)
+
 What is ucp?
 ---
 一个用udp写的文件传输工具，适用于远距离传输。
