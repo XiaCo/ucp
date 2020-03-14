@@ -29,7 +29,7 @@ func init() {
 	serverAddr = flag.String("saddr", "0.0.0.0:56789", "file sender listen to binding address")
 
 	cp = flag.String("cp", "", "format: \"remoteIP:port filePath savePath\"\nexample: \"22.22.22.22:56789 /home/test.zip ./test.zip\"")
-	speed = flag.Uint64("speed", 1024, "It is recommended to fill in the minimum bandwidth download / upload speed at both ends\nunit: Kb/s\n")
+	speed = flag.Uint64("speed", 1024, "It is recommended to fill in the minimum bandwidth download / upload speed at both ends\nunit: KB/s\n")
 
 	flag.Usage = func() {
 		fmt.Println("ucp version: 1.0.0\nA transport tool using UDP underlying protocol")

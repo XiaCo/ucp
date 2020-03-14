@@ -43,7 +43,7 @@ Usage of transfer:
         file sender listen to binding address (default "0.0.0.0:56789")
   -speed uint
         It is recommended to fill in the minimum bandwidth download / upload speed at both ends
-        unit: Kb/s
+        unit: KB/s
          (default 1024)
 ```
 

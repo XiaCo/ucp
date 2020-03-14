@@ -420,7 +420,7 @@ func (c *ClientTask) PrintDownloadProgress(wg *sync.WaitGroup) {
 	wg.Done()
 }
 
-func (c *ClientTask) Pull(speedKbS uint64) {
+func (c *ClientTask) Pull(speedKBS uint64) {
 	// 向服务端请求数据，并接收数据
 	wg := sync.WaitGroup{}
 	wg.Add(1)
@@ -436,7 +436,7 @@ func (c *ClientTask) Pull(speedKbS uint64) {
 				fmt.Println("Ready to receive data")
 				break loop
 			case <-requestRetry.C:
-				reqErr := c.requestInit(speedKbS)
+				reqErr := c.requestInit(speedKBS)
 				if reqErr != nil {
 					Logger.Println(reqErr)
 				}
