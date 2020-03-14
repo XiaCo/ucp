@@ -8,7 +8,7 @@ What is ucp?
 
 Installation
 ---
-请从Release页面下载对应可执行文件
+请从[*Release*](https://github.com/XiaCo/ucp/releases)页面下载对应可执行文件
 
 Example
 ---

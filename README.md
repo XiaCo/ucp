@@ -9,7 +9,7 @@ In the future, it will provide two-way transfer, folder synchronization and othe
 
 Installation
 ---
-please download the executable file from the Release page
+Please download the executable file from the [*Release*](https://github.com/XiaCo/ucp/releases) page
 
 Example
 ---
