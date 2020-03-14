@@ -1,3 +1,7 @@
 .vocode/
 .idea/
 *.log
+*.sh
+*.yaml
+*.yml
+dist/
