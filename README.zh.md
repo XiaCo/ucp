@@ -28,6 +28,7 @@ firewall-cmd --reload
 
 Usage
 ---
+> 关于 **-speed** 参数：建议设置成两端之间较低的带宽下载速度，以获得较为稳定高速的传输，后期将会优化
 ```
 Usage of transfer:
   -cp string

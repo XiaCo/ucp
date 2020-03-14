@@ -29,6 +29,7 @@ firewall-cmd --reload
 
 Usage
 ---
+> About **-speed**: It is recommended to set to a lower bandwidth download speed between the two ends to obtain a more stable and high-speed transmission, which will be optimized later
 ```
 Usage of transfer:
   -cp string
