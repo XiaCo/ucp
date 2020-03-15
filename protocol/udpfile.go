@@ -3,6 +3,7 @@ package protocol
 import (
 	"errors"
 	"fmt"
+	"github.com/XiaCo/ucp/utils/log"
 	"github.com/golang/protobuf/proto"
 	"net"
 	"os"
@@ -60,7 +61,7 @@ func (s *ServerTask) Close() {
 	close(s.Ready)
 	closeErr := s.File.Close()
 	if closeErr != nil {
-		Logger.Println(closeErr)
+		log.Println(closeErr)
 	}
 	s.Over = true
 }
@@ -70,7 +71,7 @@ func (s *ServerTask) requestInit() {
 	defer func() {
 		e := recover()
 		if e != nil { // 出错记录并关闭下载任务
-			Logger.Println(e)
+			log.Println(e)
 			s.Close()
 		}
 	}()
@@ -82,17 +83,17 @@ func (s *ServerTask) requestInit() {
 		s.Path = s.ReadConnMsg.GetPath()
 		f, openErr := os.Open(s.Path)
 		if openErr != nil {
-			Logger.Fatalln(openErr)
+			log.Fatalln(openErr)
 		} else {
 			s.File = f
 		}
 		stat, statErr := s.File.Stat() // 初始化请求信息
 		if statErr != nil {
-			Logger.Fatalln(statErr)
+			log.Fatalln(statErr)
 		}
 		s.SendSpeed = s.ReadConnMsg.Speed
 		numbersLength = int64(len(SplitFile(stat.Size())))
-		Logger.Printf("包数：%d\n", numbersLength)
+		log.Printf("包数：%d\n", numbersLength)
 		s.Numbers = make(chan int64, numbersLength)
 		for i := int64(0); i < numbersLength; i++ {
 			s.Numbers <- i
@@ -107,7 +108,7 @@ sendNumbers:
 		} else {
 			_, writeUDPErr := s.Conn.WriteToUDP(m, s.RemoteAddr) // 写入需要接收的编号
 			if writeUDPErr != nil {
-				Logger.Fatalln(writeUDPErr)
+				log.Fatalln(writeUDPErr)
 			}
 		}
 	}
@@ -140,11 +141,11 @@ func (s *ServerTask) WritePackage() {
 		case fileNumber := <-s.Numbers: // 取一个待发编号，取到文件对应数据，并发送
 			offset, seekErr := s.File.Seek(SplitFileSize*fileNumber, 0)
 			if seekErr != nil {
-				Logger.Println(seekErr)
+				log.Println(seekErr)
 			}
 			readSize, readErr := s.File.Read(s.Buffer)
 			if readErr != nil {
-				Logger.Println(readErr)
+				log.Println(readErr)
 			}
 
 			s.WriteConnMsg.Ack = FileDataFlag
@@ -152,11 +153,11 @@ func (s *ServerTask) WritePackage() {
 			s.WriteConnMsg.Data = s.Buffer[:readSize]
 			msg, marshalErr := proto.Marshal(s.WriteConnMsg)
 			if marshalErr != nil {
-				Logger.Println(marshalErr)
+				log.Println(marshalErr)
 			}
 			_, writeUDPErr := s.Conn.WriteToUDP(msg, s.RemoteAddr)
 			if writeUDPErr != nil {
-				Logger.Println(writeUDPErr)
+				log.Println(writeUDPErr)
 			}
 			sleep()
 		case <-delay.C: // 一定时间后，都没有收到补充请求包，待写区一直为空
@@ -170,7 +171,7 @@ func (s *ServerTask) WritePackage() {
 func (s *ServerTask) DealBuffer(buf []byte) {
 	err := proto.Unmarshal(buf, s.ReadConnMsg) // 读到的内容转换为Msg结构体
 	if err != nil {
-		Logger.Println(err)
+		log.Println(err)
 	}
 	s.dealMsg()
 }
@@ -243,7 +244,7 @@ func (c *ClientTask) sendReplyConfirm() {
 	c.WriteConnMsg.Ack = ReplyConfirmFlag
 	err := c.flushWrite()
 	if err != nil {
-		Logger.Println(err)
+		log.Println(err)
 	}
 }
 
@@ -267,7 +268,7 @@ func (c *ClientTask) dealMsg() {
 		}
 		_, seekErr := c.File.WriteAt(c.ReadConnMsg.Data, c.ReadConnMsg.Start) // 写入文件
 		if seekErr != nil {
-			Logger.Println(seekErr)
+			log.Println(seekErr)
 		} else {
 			c.NumbersLock.Lock()
 			delete(c.Numbers, num)
@@ -284,11 +285,11 @@ func (c *ClientTask) dealMsg() {
 func (c *ClientTask) readBuffer() {
 	n, readErr := c.Conn.Read(c.Buffer)
 	if readErr != nil {
-		Logger.Println(readErr)
+		log.Println(readErr)
 	}
 	unmarshalErr := proto.Unmarshal(c.Buffer[:n], c.ReadConnMsg)
 	if unmarshalErr != nil {
-		Logger.Println(unmarshalErr)
+		log.Println(unmarshalErr)
 	}
 }
 
@@ -341,7 +342,7 @@ func (c *ClientTask) sendAllWillDownloadNumbers() {
 			c.WriteConnMsg.Ack = SupplyFlag
 			c.WriteConnMsg.Number = s
 			if err := c.flushWrite(); err != nil {
-				Logger.Println(err)
+				log.Println(err)
 			}
 			time.Sleep(time.Millisecond)
 			s = numbers[:0]
@@ -353,7 +354,7 @@ func (c *ClientTask) sendAllWillDownloadNumbers() {
 		c.WriteConnMsg.Ack = SupplyFlag
 		c.WriteConnMsg.Number = s
 		if err := c.flushWrite(); err != nil {
-			Logger.Println(err)
+			log.Println(err)
 		}
 	}
 }
@@ -363,11 +364,11 @@ func (c *ClientTask) sendOver() {
 	c.WriteConnMsg.Ack = CloseFlag
 	buf, err := proto.Marshal(c.WriteConnMsg)
 	if err != nil {
-		Logger.Println(err)
+		log.Println(err)
 	}
 	_, writeErr := c.Conn.Write(buf)
 	if writeErr != nil {
-		Logger.Println(writeErr)
+		log.Println(writeErr)
 	}
 }
 
@@ -383,11 +384,11 @@ func (c *ClientTask) close() {
 	c.SpeedCal.Close()
 	fileCloseErr := c.File.Close()
 	if fileCloseErr != nil {
-		Logger.Println(fileCloseErr)
+		log.Println(fileCloseErr)
 	}
 	udpCloseErr := c.Conn.Close()
 	if udpCloseErr != nil {
-		Logger.Println(udpCloseErr)
+		log.Println(udpCloseErr)
 	}
 }
 
@@ -438,7 +439,7 @@ func (c *ClientTask) Pull(speedKBS uint64) {
 			case <-requestRetry.C:
 				reqErr := c.requestInit(speedKBS)
 				if reqErr != nil {
-					Logger.Println(reqErr)
+					log.Println(reqErr)
 				}
 			case <-timeout:
 				fmt.Println("Request timed out, please request the task from the server again")

@@ -2,12 +2,11 @@ package server
 
 import (
 	"github.com/XiaCo/ucp/protocol"
-	"github.com/XiaCo/ucp/setting"
+	"github.com/XiaCo/ucp/utils/log"
 	"net"
 )
 
 var (
-	Logger        = setting.GetInfoLogger()
 	addrMap       = make(map[string]*protocol.ServerTask)
 	ClientMessage = make(chan Package, 128) // 多余的包会被丢弃
 )
@@ -17,7 +16,7 @@ func handle(conn *net.UDPConn, addr *net.UDPAddr, b []byte) {
 	if _, ok := addrMap[remoteAddr]; !ok {
 		serverTask := protocol.NewServerTask(conn, addr)
 		addrMap[remoteAddr] = serverTask
-		Logger.Printf("request addr:%s\n", remoteAddr)
+		log.Printf("request addr:%s\n", remoteAddr)
 		go serverTask.WritePackage()
 	}
 	buf := make([]byte, len(b))
@@ -40,22 +39,22 @@ func ReadAndDealPackage() {
 }
 
 func UDPServer(addr string) {
-	Logger.Println("udpserver start")
+	log.Println("udpserver start")
 	go ReadAndDealPackage() // 读取接收到的udp包
 	udpAddr, resolveErr := net.ResolveUDPAddr("udp4", addr)
 	if resolveErr != nil {
-		Logger.Fatalln(resolveErr)
+		log.Fatalln(resolveErr)
 	}
 	//监听端口
 	udpConn, listenErr := net.ListenUDP("udp", udpAddr)
 	if listenErr != nil {
-		Logger.Fatalln(listenErr)
+		log.Fatalln(listenErr)
 	}
 	buf := make([]byte, 1024*32)
 	for {
 		n, udpRemoteAddr, err := udpConn.ReadFromUDP(buf)
 		if err != nil {
-			Logger.Fatalln(err)
+			log.Fatalln(err)
 		}
 		handle(udpConn, udpRemoteAddr, buf[:n])
 	}
