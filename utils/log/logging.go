@@ -1,37 +1,44 @@
 package log
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
 )
 
-var infoLogger = getInfoLogger()
-var LogPath = "./ucp.log"
+var InfoLogger *log.Logger
 
-func getInfoLogger() *log.Logger {
-	var Logger *log.Logger
-	_, err := os.OpenFile(LogPath, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
-	if err != nil {
-		panic(err)
+func Init(logPath string) {
+	InfoLogger = setInfoLogger(logPath)
+}
+
+func setInfoLogger(logPath string) *log.Logger {
+	var wtr io.Writer
+	if logPath != "" {
+		f, err := os.OpenFile(logPath, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
+		if err != nil {
+			panic(err)
+		}
+		wtr = io.MultiWriter(os.Stdout, f)
+	} else {
+		wtr = os.Stdout
 	}
-	mm := io.MultiWriter(os.Stdout)
-	Logger = log.New(mm, "", log.Ldate|log.Ltime|log.Lshortfile)
-	return Logger
+	return log.New(wtr, "", log.Ldate|log.Ltime|log.Lshortfile)
+	//log.SetOutput(wtr)
+	//log.SetPrefix("")
+	//log.SetFlags(log.Ldate|log.Ltime|log.Lshortfile)
 }
 
 func Println(v ...interface{}) {
-	infoLogger.Println(v...)
+	InfoLogger.Output(2, fmt.Sprintln(v...))
 }
 
 func Printf(format string, v ...interface{}) {
-	infoLogger.Printf(format, v...)
+	InfoLogger.Output(2, fmt.Sprintf(format, v...))
 }
 
 func Fatalln(v ...interface{}) {
-	infoLogger.Println(v...)
-}
-
-func Fatalf(format string, v ...interface{}) {
-	infoLogger.Fatalf(format, v...)
+	InfoLogger.Output(2, fmt.Sprintln(v...))
+	os.Exit(1)
 }
